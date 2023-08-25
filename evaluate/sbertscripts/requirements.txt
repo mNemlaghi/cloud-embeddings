@@ -1,0 +1,4 @@
+transformers
+mteb
+datasets
+accelerate==0.20.3

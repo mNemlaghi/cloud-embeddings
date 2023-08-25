@@ -1,2 +1,2 @@
 # cloud-embeddings
-A repository for tackling cloud text pre-trained embeddings, from evaluation to deployment, including fine-tuning and vector stores.
+A repository for tackling cloud text pre-trained embeddings, from evaluation to deployment, including fine-tuning and vector stores, with an AWS cloud lens.

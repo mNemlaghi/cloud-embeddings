@@ -1,23 +1,14 @@
 from aws_cdk import (
     Stack,
     CfnParameter,
-    custom_resources as cr,
-    aws_sagemaker as sm_cfn,
-    aws_s3 as s3,
+    aws_sagemaker as sagemaker,
     aws_iam as iam,
-    aws_lambda,
-    RemovalPolicy,
-    Duration,
-    Size,
     Fn
 )
-import aws_cdk.aws_sagemaker_alpha as sagemaker
+
 from utils.hf_model_data import PopulatedBucketResource
 
-import os
 from constructs import Construct
-from datetime import datetime
-import time
 
 
 
@@ -32,28 +23,43 @@ class PretrainedEmbeddingEndpointStack(Stack):
         populated_bucket = PopulatedBucketResource(self, "PopulatedBucket", upload_bucket_name.value_as_string, hf_model_id.value_as_string)
 
         ##Now create the model
-        image = sagemaker.ContainerImage.from_dlc("huggingface-pytorch-inference", "1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04", account_id="763104351884")
+        #image = sagemaker.ContainerImage.from_dlc("huggingface-pytorch-inference", "1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04", account_id="763104351884")
         model_name="CFN-"+populated_bucket.core_model_name
 
-        model_data = sagemaker.ModelData.from_bucket(populated_bucket.default_bucket, populated_bucket.model_archive_key)
-        model = sagemaker.Model(self, "PrimaryContainerModel",containers=[sagemaker.ContainerDefinition(image=image,model_data=model_data)], model_name= model_name)
+        #model_data = sagemaker.ModelData.from_bucket(populated_bucket.default_bucket, populated_bucket.model_archive_key)
+        #model = sagemaker.Model(self, "PrimaryContainerModel",containers=[sagemaker.ContainerDefinition(image=image,model_data=model_data)], model_name= model_name)
+        
+        #Create SageMaker Role
+        sm_role = iam.Role(self, "Role",
+                assumed_by=iam.CompositePrincipal(iam.ServicePrincipal("sagemaker.amazonaws.com")))
+        
+        sm_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSageMakerFullAccess"))
+
+        model = sagemaker.CfnModel(self, "model",
+                                   model_name=model_name,
+                                   primary_container={
+                                       "image": "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04",
+                                       "modelDataUrl": Fn.join("", [populated_bucket.bucket_name, populated_bucket.model_archive_key])
+                                       },
+                                    execution_role_arn=sm_role.role_arn
+                                    )
         model.node.add_dependency(populated_bucket)
 
 
         #Finally creating Endpoint Config And Endpoint
-        cfn_endpoint_config = sm_cfn.CfnEndpointConfig(self, "MyCfnEndpointConfig",
+        cfn_endpoint_config = sagemaker.CfnEndpointConfig(self, "MyCfnEndpointConfig",
             endpoint_config_name=Fn.join("", [model_name, "-endpoint-config"]),
-			production_variants=[sm_cfn.CfnEndpointConfig.ProductionVariantProperty(
+			production_variants=[sagemaker.CfnEndpointConfig.ProductionVariantProperty(
                 initial_variant_weight=1,
                 model_name=model.model_name,
                 variant_name="AllTraffic",
-                serverless_config=sm_cfn.CfnEndpointConfig.ServerlessConfigProperty(
+                serverless_config=sagemaker.CfnEndpointConfig.ServerlessConfigProperty(
                     max_concurrency=1,
                     memory_size_in_mb=6144))])
 
         cfn_endpoint_config.node.add_dependency(model)
         
-        cfn_endpoint = sm_cfn.CfnEndpoint(self, "MyCfnEndpoint", 
+        cfn_endpoint = sagemaker.CfnEndpoint(self, "MyCfnEndpoint", 
                                           endpoint_config_name=cfn_endpoint_config.endpoint_config_name,
                                           endpoint_name=Fn.join("", [model_name, "-endpoint"]))
 

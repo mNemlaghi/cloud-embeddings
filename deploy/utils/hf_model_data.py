@@ -1,8 +1,5 @@
 from aws_cdk import (
-    Stack,
-    CfnParameter,
     custom_resources as cr,
-    aws_sagemaker as sm_cfn,
     aws_s3 as s3,
     aws_iam as iam,
     aws_lambda,
@@ -12,13 +9,11 @@ from aws_cdk import (
     Fn,
     CfnOutput
 )
-import aws_cdk.aws_sagemaker_alpha as sagemaker
 
 
 import os
 from constructs import Construct
 from datetime import datetime
-import time
 
 
 class BucketPopulatorResource(Construct):

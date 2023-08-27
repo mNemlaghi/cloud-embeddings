@@ -2,8 +2,11 @@ from aws_cdk import (
     Stack,
     CfnParameter,
     aws_sagemaker as sagemaker,
+    aws_apigateway as apigateway,
+    aws_lambda,
     aws_iam as iam,
     Fn,
+    Duration,
     CfnOutput
 )
 
@@ -48,7 +51,7 @@ class PretrainedEmbeddingEndpointStack(Stack):
         #Finally creating Endpoint Config And Endpoint
         cfn_endpoint_config = sagemaker.CfnEndpointConfig(self, "MyCfnEndpointConfig",
             endpoint_config_name=Fn.join("", [model.model_name, "-endpoint-config"]),
-			production_variants=[sagemaker.CfnEndpointConfig.ProductionVariantProperty(
+            production_variants=[sagemaker.CfnEndpointConfig.ProductionVariantProperty(
                 initial_variant_weight=1,
                 model_name=model.model_name,
                 variant_name="AllTraffic",
@@ -64,3 +67,29 @@ class PretrainedEmbeddingEndpointStack(Stack):
 
         cfn_endpoint.node.add_dependency(cfn_endpoint_config)
         CfnOutput(scope=self, id=f"EndpointName", value=f"{cfn_endpoint.endpoint_name}")
+
+        #create function
+        lambda_fn = aws_lambda.Function(
+            self,
+            "sm_invoke",
+            code=aws_lambda.Code.from_asset("lambda-sminvoke"),
+            handler="handler.proxy",
+            timeout=Duration.seconds(60),
+            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            environment={"ENDPOINT_NAME": cfn_endpoint.endpoint_name})
+
+        lambda_fn.node.add_dependency(cfn_endpoint)
+        endpoint_name = cfn_endpoint.endpoint_name
+        # add policy for invoking
+        lambda_fn.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "sagemaker:InvokeEndpoint",
+                ],
+                resources=[f"arn:aws:sagemaker:{self.region}:{self.account}:endpoint/{endpoint_name}"]
+            )
+        )
+
+        api = apigateway.LambdaRestApi(self, "hf_api_gw", proxy=True, handler=lambda_fn)
+        api.node.add_dependency(lambda_fn)
+        CfnOutput(scope=self, id=f"ApiUrl", value=f"{api.url}")

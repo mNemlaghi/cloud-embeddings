@@ -29,15 +29,16 @@ class EmbeddingStorageStack(Stack):
             vpc_name="MinimumVPC",
             #cidr="10.0.0.0/16",
             max_azs=2,
-            nat_gateways=1,
+            nat_gateways=0,
             subnet_configuration=[
                 ec2.SubnetConfiguration(name="public", cidr_mask=24,reserved=False, subnet_type=ec2.SubnetType.PUBLIC),
-                ec2.SubnetConfiguration(name="private", cidr_mask=24,reserved=False, subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+                #ec2.SubnetConfiguration(name="private", cidr_mask=24,reserved=False, subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
                 ec2.SubnetConfiguration(name="isolated", cidr_mask=24,reserved=False, subnet_type=ec2.SubnetType.PRIVATE_ISOLATED)
                 ],
             enable_dns_hostnames=True,
             enable_dns_support=True
         )
+        self.vpc.add_interface_endpoint("SecretsManagerEndpoint", service = ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER)
 
         lambda_sg = ec2.SecurityGroup(self, "LambdaSecGroup", vpc = self.vpc, allow_all_outbound=True)
         db_connection_sg= ec2.SecurityGroup(self, "DBSecGroup", vpc = self.vpc, allow_all_outbound=False)
@@ -62,8 +63,7 @@ class EmbeddingStorageStack(Stack):
             publicly_accessible=False,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED))
 
-        #db.connections.allow_default_port_from_any_ipv4()
-        proxy = db.add_proxy(id+"-proxy", secrets = [db_secrets], debug_logging=True, vpc = self.vpc, require_tls = False, security_groups = [db_connection_sg])
+        #proxy = db.add_proxy(id+"-proxy", secrets = [db_secrets], debug_logging=True, vpc = self.vpc, require_tls = False, security_groups = [db_connection_sg])
         ecr_image = aws_lambda.EcrImageCode.from_asset_image(directory = os.path.join(os.getcwd(), "lambda-pgvector"), asset_name="InitializePgVectorDB")
         #Create a lambda function and invoke it
         self.lambda_fn = aws_lambda.Function(self,
@@ -75,9 +75,9 @@ class EmbeddingStorageStack(Stack):
             function_name = "InitializePgVectorDbRuntime", 
             timeout = Duration.seconds(30),
             vpc = self.vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
             allow_public_subnet=True,
-            security_groups = [lambda_sg],
-            environment = {"RDS_HOST":proxy.endpoint}
-        )
+            security_groups = [lambda_sg]
+            ,environment = {"SECRETS_MANAGER_ENDPOINT":f"https://secretsmanager.{self.region}.amazonaws.com"})
+            #,environment = {"RDS_HOST":proxy.endpoint})
         db_secrets.grant_read(self.lambda_fn)

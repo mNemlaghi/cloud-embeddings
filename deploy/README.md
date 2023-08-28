@@ -11,6 +11,9 @@ We are going to create 3 stacks:
 3. A stack with an RDS Instance, backed by PGVECTOR extension.
 
 
+![globalStackEmbeddings](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
+
+
 
 ## CDK Aspects
 

@@ -2,6 +2,16 @@
 
 This project indicates on how to create a state-of-the-art embedding SageMaker Serverless endpoint with CDK from HuggingFace Hub.
 
+
+## The big picture
+
+We are going to create 3 stacks:
+1. A stack with a model endpoint that directly populates 
+2. A stack with a linked Api Gateway
+3. A stack with an RDS Instance, backed by PGVECTOR extension.
+
+
+
 ## CDK Aspects
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.

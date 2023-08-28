@@ -2,12 +2,18 @@
 
 A repository for tackling cloud text pre-trained embeddings, from evaluation to deployment, including fine-tuning and vector stores, with an AWS cloud lens, with pretrained HuggingFace 🤗 embeddings and AWS.
 
-A series of blog posts is coming soon to give more contexts to this part 🚧.
+A series of blog posts is coming soon to give more contexts to this part 👷🏻 
 
 ## Why do embeddings matter?
 
 They're at the backbone of multiple ML systems we encounter every day; plus, as LLM encounter increasing popularity, the use-case of retrieval augmented generation (RAG) is a professional use of GenAI that heavily relies on embeddings.
 
+## Objective of this repository.
+
+Objective are simple:
+
+* this collection showcases an end-to-end guide from selection, deployment to storage and retrieval embeddings with a cloud lens.
+* thius collection will allow you to seamlessly embark your organization in a seamless journey, ensuring production readiness at every step.
 
 ## Repository structure
 

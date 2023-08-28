@@ -26,6 +26,9 @@ Modern, LoRA finetuning embeddings with 🤗 HuggingFace and SageMaker Training.
 
 Automated pretrained embedding deployment with AWS CDK and SageMaker Model Hosting, in a Serverless way.
 
+![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
+
+
 ### Store
 __TO DO__
  

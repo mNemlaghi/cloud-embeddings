@@ -61,35 +61,10 @@ class PretrainedEmbeddingEndpointStack(Stack):
 
         cfn_endpoint_config.node.add_dependency(model)
         
-        cfn_endpoint = sagemaker.CfnEndpoint(self, "MyCfnEndpoint", 
+        self.cfn_endpoint = sagemaker.CfnEndpoint(self, "MyCfnEndpoint", 
                                           endpoint_config_name=cfn_endpoint_config.endpoint_config_name,
                                           endpoint_name=Fn.join("", [model.model_name, "-endpoint"]))
 
-        cfn_endpoint.node.add_dependency(cfn_endpoint_config)
-        CfnOutput(scope=self, id=f"EndpointName", value=f"{cfn_endpoint.endpoint_name}")
+        self.cfn_endpoint.node.add_dependency(cfn_endpoint_config)
+        CfnOutput(scope=self, id=f"EndpointName", value=f"{self.cfn_endpoint.endpoint_name}")
 
-        #create function
-        lambda_fn = aws_lambda.Function(
-            self,
-            "sm_invoke",
-            code=aws_lambda.Code.from_asset("lambda-sminvoke"),
-            handler="handler.proxy",
-            timeout=Duration.seconds(60),
-            runtime=aws_lambda.Runtime.PYTHON_3_8,
-            environment={"ENDPOINT_NAME": cfn_endpoint.endpoint_name})
-
-        lambda_fn.node.add_dependency(cfn_endpoint)
-        endpoint_name = cfn_endpoint.endpoint_name
-        # add policy for invoking
-        lambda_fn.add_to_role_policy(
-            iam.PolicyStatement(
-                actions=[
-                    "sagemaker:InvokeEndpoint",
-                ],
-                resources=[f"arn:aws:sagemaker:{self.region}:{self.account}:endpoint/{endpoint_name}"]
-            )
-        )
-
-        api = apigateway.LambdaRestApi(self, "hf_api_gw", proxy=True, handler=lambda_fn)
-        api.node.add_dependency(lambda_fn)
-        CfnOutput(scope=self, id=f"ApiUrl", value=f"{api.url}")

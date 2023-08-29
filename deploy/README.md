@@ -6,16 +6,21 @@ This project indicates on how to create a state-of-the-art embedding SageMaker S
 ## The big picture
 
 We are going to create 3 stacks:
-1. A stack with a model endpoint that directly populates 
-2. A stack with a linked Api Gateway
-3. A stack with an RDS Instance, backed by PGVECTOR extension.
+1. `PretrainedHFEmbeddingEndpointeStack`: a stack with a serverless model endpoint that directly populates the model within a new S3 bucket. 
+2. `PretrainedEmbeddingApiGwStack`:  stack with a linked Api Gateway.
+3. `EmbeddingStorage`: stack with an RDS Instance on PostgreSQL, backed by PGVECTOR extension.
 
+
+## Inputs
+
+1. `uploadBucketName`: Bucket used for hosting model parameters. Default: "cfn-pretrained-embedding";
+2. `hfModel`. The Embedding model from HuggingFace Hub. Default: "sentence-transformers/all-mpnet-base-v2", e.g. the very handy [MPNET](https://huggingface.co/sentence-transformers/all-mpnet-base-v2) ;  
+3. Your model name. Default: Default: "cfn-pretrained-embedding".
 
 ![globalStackEmbeddings](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
 
 
-
-## CDK Aspects
+## Using CDK.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
@@ -70,3 +75,30 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+## Creating the pretrained stack
+Depending on your intention, you might want to push one of the three aforementioned stacks.
+
+To deploy everything fast without review (⚠️️ ️be️war️e of️ the ️charge️s ⚠️)
+
+```
+$ cdk deploy --all --require-approval never --concurrency 2
+```
+
+If you want to deploy the endpoint stack, perform:
+
+```
+$ cdk deploy PretrainedHFEmbeddingEndpointeStack
+```
+
+Should you want to deploy the Endpoint and the Api Gateway API, perform:
+
+```
+$ cdk deploy PretrainedHFEmbeddingEndpointeStack && cdk deploy PretrainedEmbeddingApiGwStack
+```
+
+If you want to deploy only the RDS instance with PGVector, perform:
+
+```
+$ cdk deploy EmbeddingStorage
+```

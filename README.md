@@ -16,11 +16,11 @@ They're at the backbone of multiple ML systems we encounter every day; plus, as 
 ## Repository structure
 
 ### Evaluate
-Evaluate SOTA embeddings with [MTEB](https://huggingface.co/blog/mteb) and SageMaker Processing according to your needs.
+Evaluate SOTA embeddings with [MTEB](https://huggingface.co/blog/mteb) and SageMaker Processing according to your needs and delights.
 
 ### Finetune
 
-Modern, LoRA finetuning embeddings with 🤗 HuggingFace and SageMaker Training.
+[Finetune](finetune/) is about modern, LoRA finetuning embeddings with 🤗 HuggingFace and SageMaker Training.
 
 ### Deploy
 

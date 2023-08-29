@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_rds as rds,
     aws_ec2 as ec2,
+    custom_resources as cr,
     Fn,
     Duration,
     RemovalPolicy,
@@ -16,6 +17,30 @@ from utils.hf_model_data import PopulatedBucketResource
 
 from constructs import Construct
 
+class DbInitializerInvoke(Construct):
+    def __init__(self, scope: Construct, id: str, lambda_fn: aws_lambda.Function):
+        super().__init__(scope, id)
+        invoker = cr.AwsCustomResource(self, 
+                                       id= "InitializeDbInvocation",
+                                       timeout=Duration.minutes(2),
+                                       on_create = self.create(lambda_fn.function_name),
+                                       resource_type='Custom::InvokerResource',
+                                       policy=cr.AwsCustomResourcePolicy.from_statements([iam.PolicyStatement(
+                                           actions=['lambda:InvokeFunction'],
+                                           effect=iam.Effect.ALLOW,
+                                           resources=[lambda_fn.function_arn])]))
+
+    def create(self, lambda_name):
+        lambda_params = {}
+        lambda_params['FunctionName'] = lambda_name
+        lambda_params['InvocationType'] = "RequestResponse"
+        payload = "{\"key1\":\"value1\"}"
+        lambda_params['Payload'] = payload
+
+        return cr.AwsSdkCall(service="Lambda",
+                          action="invoke",
+                          parameters = lambda_params,
+                          physical_resource_id=cr.PhysicalResourceId.of("MyAutomationExecution"))
 
 
 class EmbeddingStorageStack(Stack):
@@ -80,4 +105,8 @@ class EmbeddingStorageStack(Stack):
             security_groups = [lambda_sg]
             ,environment = {"SECRETS_MANAGER_ENDPOINT":f"https://secretsmanager.{self.region}.amazonaws.com"})
             #,environment = {"RDS_HOST":proxy.endpoint})
+        self.lambda_fn.node.add_dependency(db_secrets) #Explicitly add dependency
         db_secrets.grant_read(self.lambda_fn)
+
+        initializer=DbInitializerInvoke(self, "PgVectorInitialization", self.lambda_fn)
+        initializer.node.add_dependency(self.lambda_fn)

@@ -1,6 +1,8 @@
 # Welcome to your MLOPS for embeddings!
 
-This project indicates on how to create a state-of-the-art embedding SageMaker Serverless endpoint with CDK from HuggingFace Hub.
+## Objective
+
+This subdirectory is part of the `cloud-embeddings` repository. This section indicates on how to create a state-of-the-art embedding with Amazon SageMaker Serverless endpoint with CDK from HuggingFace Hub, alongside with a pre-configured RDS instance with PgVector installed.
 
 
 ## The big picture
@@ -10,6 +12,10 @@ We are going to create 3 stacks:
 2. `PretrainedEmbeddingApiGwStack`:  stack with a linked Api Gateway.
 3. `EmbeddingStorage`: stack with an RDS Instance on PostgreSQL, backed by PGVECTOR extension.
 
+![globalStackEmbeddings](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
+
+
+We'll have everything setup for numerous use-cases.
 
 ## Inputs
 
@@ -17,7 +23,6 @@ We are going to create 3 stacks:
 2. `hfModel`. The Embedding model from HuggingFace Hub. Default: "sentence-transformers/all-mpnet-base-v2", e.g. the very handy [MPNET](https://huggingface.co/sentence-transformers/all-mpnet-base-v2) ;  
 3. Your model name. Default: Default: "cfn-pretrained-embedding".
 
-![globalStackEmbeddings](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
 
 
 ## Using CDK.

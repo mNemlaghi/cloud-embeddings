@@ -10,8 +10,8 @@ They're at the backbone of multiple ML systems we encounter every day; plus, as 
 
 ## Objective of this repository.
 
-* This collection of code showcases an end-to-end guide from selection, deployment to storage and retrieval embeddings with a cloud lens.
-* This collection will hopefully allow you to get some perspective on every step froù seamlessly embark your organization in a seamless embedding journey, ensuring production readiness at every step.
+* This collection of code showcases an end-to-end guide from selection, evaluation, finetuning, deployment to storage and retrieval embeddings with a cloud lens.
+* This collection will hopefully allow you to get some perspective on every step, allowing your organization to embark in a seamless embedding journey, ensuring production readiness at every step.
 
 ## Repository structure
 

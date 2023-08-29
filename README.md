@@ -16,15 +16,15 @@ They're at the backbone of multiple ML systems we encounter every day; plus, as 
 ## Repository structure
 
 ### Evaluate
-Evaluate SOTA embeddings with [MTEB](https://huggingface.co/blog/mteb) and SageMaker Processing according to your needs and delights.
+Thanks to the [evaluation](evaluate/) part of this repository, you can evaluate SOTA embeddings with [MTEB](https://huggingface.co/blog/mteb) and SageMaker Processing according to your needs and delights.
 
 ### Finetune
 
-[Finetune](finetune/) is about modern, LoRA finetuning embeddings with 🤗 HuggingFace and SageMaker Training.
+[Finetune](finetune/) part is about modern, LoRA finetuning embeddings with 🤗 HuggingFace and SageMaker Training.
 
 ### Deploy
 
-Automated pretrained embedding deployment with AWS CDK and SageMaker Model Hosting, in a Serverless way.
+[Deployment](deploy/). Automated pretrained embedding deployment with AWS CDK and SageMaker Model Hosting, in a Serverless way.
 
 ![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
 

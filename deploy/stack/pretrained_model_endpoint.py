@@ -10,7 +10,8 @@ from aws_cdk import (
     CfnOutput
 )
 
-from construct.hf_model_data import PopulatedBucketResource
+from construct.pretrained_embedding import HFPretrainedEmbeddingModel, JumpStartPretrainedEmbedding
+from utils.jumpstart_uris import get_jumpstart_embeddings_model_list, JumpStartArtefacts
 
 from constructs import Construct
 
@@ -18,35 +19,25 @@ from constructs import Construct
 
 class PretrainedEmbeddingEndpointStack(Stack):
 
-    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str,  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        ##Parameters
         upload_bucket_name = CfnParameter(self, "uploadBucketName", type="String",description="Bucket where models are stored", default="sm-pretrained-embedding-bucket")
-        hf_model_id= CfnParameter(self, "hfModelId", type="String",description="model from HF", default="sentence-transformers/all-mpnet-base-v2")
         model_name= CfnParameter(self, "ModelName", type="String",default="cfn-pretrained-embedding", description="Name for Embedding" )
 
-        #First create a bucket populated with HF hub model parameters
-        populated_bucket = PopulatedBucketResource(self, "PopulatedBucket", upload_bucket_name.value_as_string, 
-                                                   hf_model_id.value_as_string, 
-                                                   model_name.value_as_string)
-
-        
-        #Create SageMaker Role that has access to model artefacts
-        sm_role = iam.Role(self, "Role",
-                assumed_by=iam.CompositePrincipal(iam.ServicePrincipal("sagemaker.amazonaws.com")))
-        
-        sm_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSageMakerFullAccess"))
-        populated_bucket.default_bucket.grant_read_write(sm_role)
-
-        model = sagemaker.CfnModel(self, "model",
-                                   model_name=model_name.value_as_string,
-                                   primary_container={
-                                       "image": "763104351884.dkr.ecr.eu-west-2.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04",
-                                       "modelDataUrl": populated_bucket.model_artefacts_s3_uri
-                                       },
-                                    execution_role_arn=sm_role.role_arn
-                                    )
-        model.node.add_dependency(populated_bucket)
-
+        embedding_provider = self.node.try_get_context("provider")
+        if embedding_provider == "jumpstart":
+            jumpstart_embeddings = get_jumpstart_embeddings_model_list(self.region)
+            jumpstart_model_id = self.node.try_get_context("jumpstart_model_id")
+            jumpstart_artefacts = JumpStartArtefacts(jumpstart_model_id, self.region)
+            model= JumpStartPretrainedEmbedding(self, "JumpstartPretrainedModel", jumpstart_artefacts, model_name.value_as_string)
+        elif embedding_provider == "huggingface":
+            #First create a bucket populated with HF hub model parameters
+            hf_model_id = self.node.try_get_context("hf_model_id")
+            model = HFPretrainedEmbeddingModel(self, "HFPretrainedModel",  upload_bucket_name.value_as_string, hf_model_id, model_name.value_as_string)
+        else:
+            raise NotImplementedError
 
         #Finally creating Endpoint Config And Endpoint
         cfn_endpoint_config = sagemaker.CfnEndpointConfig(self, "MyCfnEndpointConfig",
@@ -67,4 +58,3 @@ class PretrainedEmbeddingEndpointStack(Stack):
 
         self.cfn_endpoint.node.add_dependency(cfn_endpoint_config)
         CfnOutput(scope=self, id=f"EndpointName", value=f"{self.cfn_endpoint.endpoint_name}")
-

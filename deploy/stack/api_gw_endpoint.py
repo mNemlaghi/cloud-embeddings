@@ -10,7 +10,6 @@ from aws_cdk import (
     CfnOutput
 )
 
-from utils.hf_model_data import PopulatedBucketResource
 
 from constructs import Construct
 

@@ -13,7 +13,6 @@ from aws_cdk import (
 )
 
 import os
-from utils.hf_model_data import PopulatedBucketResource
 
 from constructs import Construct
 

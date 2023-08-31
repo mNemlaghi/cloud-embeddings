@@ -26,7 +26,7 @@ Thanks to the [evaluation](evaluate/) part of this repository, you can evaluate 
 
 [Deployment](deploy/). Automated pretrained embedding deployment with AWS CDK and SageMaker Model Hosting, in a Serverless way.
 
-![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
+![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/e177f369-3276-4c3c-9cd4-1b4966309db6)
 
 
 ### Store

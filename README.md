@@ -1,4 +1,4 @@
-# ☁️☁️☁️ Cloud Embeddings: evaluate, finetune, deploy and store state-of-the-art pretrained embeddings 🔢🔢🔢
+# ☁️ Cloud Embeddings: evaluate, finetune, deploy and store state-of-the-art pretrained embeddings 🔢
 
 A repository for tackling cloud text pre-trained embeddings, from evaluation to deployment, including fine-tuning and vector stores, with an AWS cloud lens, with pretrained HuggingFace 🤗 embeddings and AWS.
 

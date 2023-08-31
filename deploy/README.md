@@ -12,7 +12,8 @@ We are going to create 3 stacks:
 2. `PretrainedEmbeddingApiGwStack`:  stack with a linked Api Gateway.
 3. `EmbeddingStorage`: stack with an RDS Instance on PostgreSQL, backed by PGVECTOR extension.
 
-![globalStackEmbeddings](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/dbc1689a-f050-4925-a334-cee70e04eb36)
+![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/e177f369-3276-4c3c-9cd4-1b4966309db6)
+
 
 
 We'll have everything setup for numerous use-cases.

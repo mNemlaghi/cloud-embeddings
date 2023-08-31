@@ -10,7 +10,7 @@ from aws_cdk import (
     CfnOutput
 )
 
-from construct.pretrained_embedding import HFPretrainedEmbeddingModel, JumpStartPretrainedEmbedding
+from construct.pretrained_embedding import HFPretrainedEmbeddingModel, JumpStartPretrainedEmbedding, FinetunedEmbedding
 from utils.jumpstart_uris import get_jumpstart_embeddings_model_list, JumpStartArtefacts
 
 from constructs import Construct
@@ -31,30 +31,36 @@ class PretrainedEmbeddingEndpointStack(Stack):
             jumpstart_embeddings = get_jumpstart_embeddings_model_list(self.region)
             jumpstart_model_id = self.node.try_get_context("jumpstart_model_id")
             jumpstart_artefacts = JumpStartArtefacts(jumpstart_model_id, self.region)
-            model= JumpStartPretrainedEmbedding(self, "JumpstartPretrainedModel", jumpstart_artefacts, model_name.value_as_string)
+            self.model= JumpStartPretrainedEmbedding(self, "JumpstartPretrainedModel", jumpstart_artefacts, model_name.value_as_string)
         elif embedding_provider == "huggingface":
             #First create a bucket populated with HF hub model parameters
             hf_model_id = self.node.try_get_context("hf_model_id")
-            model = HFPretrainedEmbeddingModel(self, "HFPretrainedModel",  upload_bucket_name.value_as_string, hf_model_id, model_name.value_as_string)
+            self.model = HFPretrainedEmbeddingModel(self, "HFPretrainedModel",  upload_bucket_name.value_as_string, hf_model_id, model_name.value_as_string)
+        elif embedding_provider == "finetuned":
+            finetuned_artefacts = dict()
+            finetuned_artefacts["image_uri"]= self.node.try_get_context("image_uri")
+            finetuned_artefacts["model_archive"]=self.node.try_get_context("model_archive")
+            finetuned_artefacts["pretrained_hf_model_id"]=self.node.try_get_context("pretrained_hf_model_id")
+            self.model = FinetunedEmbedding(self, "FinetunedModel", finetuned_artefacts, model_name.value_as_string)
         else:
             raise NotImplementedError
 
         #Finally creating Endpoint Config And Endpoint
-        cfn_endpoint_config = sagemaker.CfnEndpointConfig(self, "MyCfnEndpointConfig",
-            endpoint_config_name=Fn.join("", [model.model_name, "-endpoint-config"]),
-            production_variants=[sagemaker.CfnEndpointConfig.ProductionVariantProperty(
-                initial_variant_weight=1,
-                model_name=model.model_name,
-                variant_name="AllTraffic",
-                serverless_config=sagemaker.CfnEndpointConfig.ServerlessConfigProperty(
-                    max_concurrency=1,
-                    memory_size_in_mb=6144))])
+        #cfn_endpoint_config = sagemaker.CfnEndpointConfig(self, "MyCfnEndpointConfig",
+        #    endpoint_config_name=Fn.join("", [model.model_name, "-endpoint-config"]),
+        #    production_variants=[sagemaker.CfnEndpointConfig.ProductionVariantProperty(
+        #        initial_variant_weight=1,
+        #        model_name=model.model_name,
+        #        variant_name="AllTraffic",
+        #        serverless_config=sagemaker.CfnEndpointConfig.ServerlessConfigProperty(
+        #            max_concurrency=1,
+        #            memory_size_in_mb=6144))])
 
-        cfn_endpoint_config.node.add_dependency(model)
-        
-        self.cfn_endpoint = sagemaker.CfnEndpoint(self, "MyCfnEndpoint", 
-                                          endpoint_config_name=cfn_endpoint_config.endpoint_config_name,
-                                          endpoint_name=Fn.join("", [model.model_name, "-endpoint"]))
+        #cfn_endpoint_config.node.add_dependency(model)
+        #
+        #self.cfn_endpoint = sagemaker.CfnEndpoint(self, "MyCfnEndpoint", 
+        #                                  endpoint_config_name=cfn_endpoint_config.endpoint_config_name,
+        #                                  endpoint_name=Fn.join("", [model.model_name, "-endpoint"]))
 
-        self.cfn_endpoint.node.add_dependency(cfn_endpoint_config)
-        CfnOutput(scope=self, id=f"EndpointName", value=f"{self.cfn_endpoint.endpoint_name}")
+        #self.cfn_endpoint.node.add_dependency(cfn_endpoint_config)
+        #CfnOutput(scope=self, id=f"EndpointName", value=f"{self.cfn_endpoint.endpoint_name}")

@@ -30,6 +30,10 @@ Thanks to the [evaluation](evaluate/) part of this repository, you can evaluate 
 
 
 ### Store
-__TO DO__
+
+Deployment contains a ready-made DB instance with RDS!
+
+🚧🚧 In construction 🚧🚧
+We'll add resources on how to store and retrieve data, but you can already find excellent resources [in here](https://aws.amazon.com/fr/blogs/database/building-ai-powered-search-in-postgresql-using-amazon-sagemaker-and-pgvector/) for instance.
  
 

@@ -31,6 +31,7 @@ I'm currently working on 3 types of models.
 
 ### Your finetuned models !
 
+You can put your already finetuned models and deploy them with a Serverless endpoint!
 🚧🚧 In construction 🚧🚧
 
 

@@ -52,7 +52,7 @@ After installing and bootstrapping CDK (see below), you might need to change con
 
 
 ### Parameters (optional)
-1. `uploadBucketName`: Bucket used for hosting model parameters. Default: "cfn-pretrained-embedding";
+1. `uploadBucketName`: Bucket used for hosting model parameters. Default: "sm-pretrained-embedding-bucket";
 2. `ModelName`: your  model name. Default: Default: "cfn-pretrained-embedding".
 
 

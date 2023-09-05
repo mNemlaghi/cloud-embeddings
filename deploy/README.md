@@ -69,7 +69,7 @@ $ cdk deploy --all --require-approval never --concurrency 2
 If you want to deploy the endpoint stack, perform:
 
 ```
-$ cdk deploy PretrainedHFEmbeddingEndpointeStack
+$ cdk deploy EmbeddingEndpointStack
 ```
 
 Should you want to deploy the Endpoint and the Api Gateway API, perform:

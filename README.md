@@ -2,7 +2,7 @@
 
 A repository for tackling cloud text pre-trained embeddings, from evaluation to deployment, including fine-tuning and vector stores, with an AWS cloud lens, with pretrained HuggingFace 🤗 embeddings and AWS.
 
-A series of blog posts is coming soon to give more contexts to this part 👷🏻 
+The accompanying blog post series can be found [here](https://mnemlaghi.github.io/cloud-embeddings/).
 
 ## Why do embeddings matter?
 

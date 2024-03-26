@@ -29,6 +29,10 @@ Thanks to the [evaluation](evaluate/) part of this repository, you can evaluate 
 ![Stacks proposition](https://github.com/mNemlaghi/cloud-embeddings/assets/12110853/e177f369-3276-4c3c-9cd4-1b4966309db6)
 
 
+### 🆕NEW 🆕: What about Google Cloud Gecko Embeddings
+
+[A hint on Google Cloud Embeddings](google-cloud-embedding-gecko/)
+
 ### Store
 
 Deployment contains a ready-made DB instance with RDS!

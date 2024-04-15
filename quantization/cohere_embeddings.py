@@ -1,17 +1,16 @@
 import json
 import numpy as np
 
-from abstract_embedder import AbstractAWSEmbedder, BinaryEncoder, ScalarEncoder, TernaryEncoder
-from abstract_embedder import TernaryRotatedEncoder,BinaryRotatedEncoder, RotatedScalarEncoder
+from abstract_embedder import AbstractAWSEmbedder, BinaryEncoder, ScalarEncoder, TernaryEncoder, QuaternaryEncoder
+from abstract_embedder import TernaryRotatedEncoder,BinaryRotatedEncoder, RotatedScalarEncoder, QuaternaryRotatedEncoder
 
 
 class CohereEncoder(AbstractAWSEmbedder):
 
-    def __init__(self, boto_client, model_id = "cohere.embed-english-v3", task_name = "default", precomputed=False, embeddings_path="precomputed"):
+    def __init__(self, boto_client, model_id = "cohere.embed-english-v3", task_name = "default",  embeddings_path="precomputed"):
         super().__init__(boto_client=boto_client, 
                          model_id=model_id, 
                          task_name=task_name, 
-                         precomputed=precomputed , 
                          embeddings_path=embeddings_path, 
                          provider="cohere", 
                          batch_size = 90)
@@ -42,3 +41,17 @@ class BinaryRotatedCohereEncoder(CohereEncoder, BinaryRotatedEncoder):
 
 class ScalarRotatedCohereEncoder(CohereEncoder, RotatedScalarEncoder):
     pass
+
+
+
+#### For convenience during importation, we create a dict of classes.
+
+cohere_encoders_scope = [CohereEncoder,
+                         ScalarCohereEncoder,
+                         BinaryCohereEncoder,
+                         TernaryCohereEncoder,
+                         TernaryRotatedCohereEncoder,
+                         ScalarRotatedCohereEncoder,
+                         BinaryRotatedCohereEncoder]
+
+cohere_experiment_scope = {v.type:v for v in cohere_encoders_scope}

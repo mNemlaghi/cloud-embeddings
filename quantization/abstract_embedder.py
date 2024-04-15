@@ -7,11 +7,10 @@ from pathlib import Path
 class AbstractAWSEmbedder:
     type = "classic"
 
-    def __init__(self, boto_client, model_id = "cohere.embed-english-v3", task_name = "default", precomputed=False, embeddings_path="precomputed", provider = "cohere", batch_size =90):
+    def __init__(self, boto_client, model_id = "cohere.embed-english-v3", task_name = "default", embeddings_path="precomputed", provider = "cohere", batch_size =90):
         self.model_id= model_id
         self.client = boto_client
         self.task_name=task_name
-        self.precomputed = precomputed
         self.base_path = Path(embeddings_path)
         self.base_path.mkdir(exist_ok=True)
         self.provider = provider
@@ -23,7 +22,8 @@ class AbstractAWSEmbedder:
 
     def encode(self, sentences,   **kwargs): #Max 96 embeddings
         self.embedding_path = Path(f"{self.base_path.resolve()}/{self.model_id}-{self.task_name}-{self.hash_chunk(sentences)}.pickle")
-        if self.precomputed:
+        precomputed=self.embedding_path.is_file()
+        if precomputed:
             saved = pickle.load(open(self.embedding_path.resolve(), 'rb'))
             res = saved['final_embeddings']
         else:
@@ -141,7 +141,31 @@ class TernaryEncoder(AbstractAWSEmbedder):
         self.byte_size = self.my_dimension* x2[0].itemsize
         return l
 
+class QuaternaryEncoder(AbstractAWSEmbedder):
+    type = "quaternary"
+
+    def calibrate_embeddings(self):
+        X = self.create_matrix()
+        self.X25, self.X50, self.X75 = np.quantile(X.flatten(), 1/4), np.quantile(X.flatten(), 1/2), np.quantile(X.flatten(), 3/4)
     
+    def turn_quaternary(self, elt):
+        return [int(e) for e in np.binary_repr(elt).zfill(2)]
+        
+    def quaternary_quantize_embedding(self, x):
+        l = [3 if e>self.X75 else (2 if e>self.X50 else (1 if e>self.X25 else 0))  for e in x]
+        packed = np.packbits([self.turn_quaternary(elt) for elt in l]).astype(np.uint8)
+        return packed
+    
+    def encode(self, sentences, batch_size=90,**kwargs): #Max 96 sentences
+        x1 = super().encode(sentences, batch_size=batch_size,**kwargs)
+        x2 =  [self.quaternary_quantize_embedding(y) for y in x1]
+        
+        l= [list(y) for y in x2]
+        self.my_dimension = len(l[0])
+        self.byte_size = self.my_dimension* x2[0].itemsize
+        return l
+
+
 class TernaryRotatedEncoder(TernaryEncoder):
     type = "rotated-ternary"
 
@@ -185,3 +209,19 @@ class RotatedScalarEncoder(ScalarEncoder):
     def scalar_quantize(self, x):
         x1 = self.UT@x
         return super().scalar_quantize(x1)
+
+
+class QuaternaryRotatedEncoder(QuaternaryEncoder):
+    type = "rotated-quaternary"
+
+    def calibrate_embeddings(self):
+        X = self.create_matrix()
+        U = self.get_svd_left_rotation()
+        self.UT = U.T[:,:U.T.shape[0]]
+        self.allrotated = self.UT@X.T
+        self.X25, self.X50, self.X75 = np.quantile(self.allrotated.flatten(), 1/4), np.quantile(self.allrotated.flatten(), 1/2), np.quantile(self.allrotated.flatten(), 3/4)
+
+
+    def ternary_quantize_embedding(self, x):
+        rotated = self.UT@x
+        return super().quaternary_quantize_embedding(rotated)
